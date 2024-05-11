@@ -82,7 +82,19 @@ func (a *Analyzer) Analyze(pid int, relevantFuncs map[string]interface{}) (*Targ
 		return nil, err
 	}
 
-	goVersion, err := version.NewVersion(a.BuildInfo.GoVersion)
+	buildInfo, err := buildinfo.Read(f)
+	if err != nil {
+		return nil, err
+	}
+	biGoVersion := buildInfo.GoVersion
+	if strings.Contains(biGoVersion, " X:") {
+		v := strings.Split(biGoVersion, " X:")
+		if len(v) != 2 {
+			return nil, errors.New("error parsing go version")
+		}
+		biGoVersion = v[0]
+	}
+	goVersion, err := version.NewVersion(strings.ReplaceAll(biGoVersion, "go", ""))
 	if err != nil {
 		return nil, err
 	}
